@@ -11,6 +11,7 @@ depends: [
   "containers"
   "zarith"
   "ppx_inline_test"
+  "ppx_deriving"
   "odoc" {with-doc}
 ]
 build: [

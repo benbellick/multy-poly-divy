@@ -13,6 +13,6 @@
  (name multy_poly_divy)
  (synopsis "Multivariate polynomial division")
  (description "Still multivariate polynomial division")
- (depends ocaml dune containers zarith ppx_inline_test))
+ (depends ocaml dune containers zarith ppx_inline_test ppx_deriving))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
