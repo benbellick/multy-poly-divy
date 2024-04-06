@@ -5,22 +5,14 @@
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github benbellick/multy-poly-divy))
 
-(authors "Author Name")
-
-(maintainers "Maintainer Name")
-
-(license LICENSE)
-
-(documentation https://url/to/documentation)
+(authors "Ben Bellick")
 
 (package
  (name multy_poly_divy)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml dune)
- (tags
-  (topics "to describe" your project)))
+ (synopsis "Multivariate polynomial division")
+ (description "Still multivariate polynomial division")
+ (depends ocaml dune containers zarith ppx_inline_test))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
