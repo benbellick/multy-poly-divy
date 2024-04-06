@@ -1,0 +1,2 @@
+(library
+ (name multy_poly_divy))
