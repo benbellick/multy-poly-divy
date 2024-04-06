@@ -2,4 +2,5 @@
  (name multy_poly_divy)
  (inline_tests)
  (libraries containers zarith)
- (preprocess (pps ppx_inline_test)))
+ (preprocess
+  (pps ppx_inline_test)))
