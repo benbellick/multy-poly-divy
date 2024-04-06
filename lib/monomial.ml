@@ -68,6 +68,8 @@ let%test "bad_div" = [ ("x", 2); ("y", 3) ] / [ ("z", 1); ("x", 1) ] = None
 let%test "div" =
   [ ("x", 2); ("y", 3) ] / [ ("y", 1); ("x", 1) ] = Some [ ("x", 1); ("y", 2) ]
 
+let ord m = CCList.fold_left (fun o (_v, e) -> o + e) 0 m
+
 module Order = struct
   (* Remember that here, we can assume each mon is sorted already *)
   let rec lex m1 m2 : int =
@@ -99,4 +101,26 @@ module Order = struct
     let m1 = of_string "x3y3" in
     let m2 = of_string "x3" in
     lex m1 m2 > 0
+
+  let grlex m1 m2 =
+    let o1 = ord m1 in
+    let o2 = ord m2 in
+    if o1 < o2 then -1 else if o1 > o2 then 1 else lex m1 m2
+
+  let%test "grlex" =
+    let m1 = of_string "n2m3o4" in
+    let m2 = of_string "x100" in
+    grlex m1 m2 < 0
+
+  let%test "grlex_same_ord" =
+    let m1 = of_string "a2b3" in
+    let m2 = of_string "a3b2" in
+    grlex m1 m2 < 0
+
+  let grevlex m1 m2 = CCInt.neg @@ grlex (CCList.rev m1) (CCList.rev m2)
+
+  let%test "grevlex" =
+    let m1 = of_string "xy5z2" in
+    let m2 = of_string "x4yz3" in
+    grevlex m1 m2 > 0
 end
