@@ -1,6 +1,7 @@
 (* For now, simplifying assumption that vars are chars *)
 type var = char [@@deriving show]
 type exp = int [@@deriving show]
+(** By convention, the empty list will represent the constant term  *)
 type t = (var * exp) list [@@deriving show]
 
 (** By convention, we sort individual vars in lex ordering,

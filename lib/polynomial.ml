@@ -39,6 +39,15 @@ let%test "of_string" =
       (Q.of_int (-1), Monomial.of_string "z");
     ]
 
+let%test "of_string_w_const_term" =
+  let p = of_string "2xyz + x2 + 7" in
+  CCList.equal ( = ) p
+    [
+      (Q.of_int 2, Monomial.of_string "xyz");
+      (Q.of_int 1, Monomial.of_string "x2");
+      (Q.of_int 7, Monomial.of_string "");
+    ]
+
 let rec collapse = function
   | [] -> []
   | (a, mon) :: rest ->
@@ -81,3 +90,10 @@ let%test "times" =
   let p2 = of_string "xy2 + 9z4" in
   let expect = of_string "3x2y3z + 27xyz5 + 2x4y4z + 18x3y2z5" in
   CCList.equal ( = ) (p1 * p2) expect
+
+let%test "times_w_const_terms" =
+  let p1 = of_string "xy + 1" in
+  let p2 = of_string "x2 + 2" in
+  let expect = of_string "x2 + 2 + x3y + 2xy" in
+  CCList.equal ( = ) (p1 * p2) expect
+(* TODO: equality should be irrespective of order, but don't really want to commit to one representation...*)
