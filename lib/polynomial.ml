@@ -4,9 +4,9 @@ let is_digit = function '0' .. '9' -> true | _ -> false
 
 module Monomial = struct
   (* For now, simplifying assumption that vars are chars *)
-  type var = char
-  type exp = int
-  type t = (var * exp) list
+  type var = char [@@deriving show]
+  type exp = int [@@deriving show]
+  type t = (var * exp) list [@@deriving show]
 
   let of_string str =
     let rec parse_chars = function
@@ -57,7 +57,10 @@ module Monomial = struct
 end
 
 type coeff = Q.t
-type t = (coeff * Monomial.t) list
+
+let pp_coeff fmt = CCFormat.fprintf fmt "%a" Q.pp_print
+
+type t = (coeff * Monomial.t) list [@@deriving show]
 
 let parse_term is_neg str =
   let chars = CCString.to_list str in
@@ -72,7 +75,8 @@ let parse_term is_neg str =
   (coeff, mon_str |> CCString.of_list |> Monomial.of_string)
 
 let of_string str : t =
-  let str = CCString.trim str in
+  let strip s = CCString.replace ~sub:" " ~by:"" s in
+  let str = strip str in
   let chunks = CCString.split_on_char '+' str in
   let chunks = CCList.map (CCString.split_on_char '-') chunks in
   let handle_chunk = function
@@ -104,6 +108,34 @@ let rec collapse = function
       (sum_coeff, mon) :: collapse others
 
 let%test "collapse" =
-  let p1 = of_string "2xyz+z" in
-  let p2 = collapse @@ of_string "3xyz+z-xyz" in
+  let p1 = of_string "2xyz+2z" in
+  let p2 = collapse @@ of_string "3xyz+z-xyz+z" in
   CCList.equal ( = ) p1 p2
+
+let ( + ) p1 p2 = collapse @@ p1 @ p2
+let neg p = CCList.map (fun (c, m) -> (Q.neg c, m)) p
+let ( - ) p1 p2 = p1 + neg p2
+
+let%test "add" =
+  let p1 = of_string "2ab3c+b2c" in
+  let p2 = of_string "3abc + 4ab3c" in
+  let expect = of_string "6ab3c+b2c+3abc" in
+  CCList.equal ( = ) (p1 + p2) expect
+
+let mon_mult m (p : t) =
+  collapse @@ CCList.map (fun (coeff, mo) -> (coeff, Monomial.(m * mo))) p
+
+let term_mult (coeff, m) (p : t) =
+  let p_times_coeff =
+    CCList.map (fun (coeffo, mo) -> (Q.(coeff * coeffo), mo)) p
+  in
+  mon_mult m p_times_coeff
+
+let ( * ) p1 p2 =
+  collapse @@ CCList.fold_left (fun p t -> term_mult t p2 + p) [] p1
+
+let%test "times" =
+  let p1 = of_string "2x3y2z + 3xyz" in
+  let p2 = of_string "xy2 + 9z4" in
+  let expect = of_string "3x2y3z + 27xyz5 + 2x4y4z + 18x3y2z5" in
+  CCList.equal ( = ) (p1 * p2) expect
