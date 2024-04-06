@@ -68,8 +68,35 @@ let%test "bad_div" = [ ("x", 2); ("y", 3) ] / [ ("z", 1); ("x", 1) ] = None
 let%test "div" =
   [ ("x", 2); ("y", 3) ] / [ ("y", 1); ("x", 1) ] = Some [ ("x", 1); ("y", 2) ]
 
-(* module Order = struct *)
-(*   let sort_mon = CCList.sort *)
-(*   let lex m1 m2 =  *)
+module Order = struct
+  (* Remember that here, we can assume each mon is sorted already *)
+  let rec lex m1 m2 : int =
+    match (m1, m2) with
+    | [], [] -> 0
+    | _, [] -> 1
+    | [], _ -> -1
+    | (v1, e1) :: rest1, (v2, e2) :: rest2 when v1 = v2 && e1 = e2 ->
+        lex rest1 rest2
+    | (v1, e1) :: _, (v2, e2) :: _ when v1 = v2 -> compare e1 e2
+    | (v1, _e1) :: _, (v2, _e2) :: _ -> compare v2 v1
 
-(* end *)
+  let%test "lex_same_var" =
+    let m1 = of_string "x2y3" in
+    let m2 = of_string "x3y3" in
+    lex m1 m2 < 0
+
+  let%test "lex_same_var_same_exp" =
+    let m1 = of_string "x3y3" in
+    let m2 = of_string "x3y2" in
+    lex m1 m2 > 0
+
+  let%test "lex_diff_var" =
+    let m1 = of_string "x3y3" in
+    let m2 = of_string "y2z" in
+    lex m1 m2 > 0
+
+  let%test "lex_diff_length" =
+    let m1 = of_string "x3y3" in
+    let m2 = of_string "x3" in
+    lex m1 m2 > 0
+end
