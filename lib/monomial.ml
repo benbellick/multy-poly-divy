@@ -72,8 +72,9 @@ let%test "div" =
 let ord m = CCList.fold_left (fun o (_v, e) -> o + e) 0 m
 
 module Order = struct
+  type mon_compare = t -> t -> int
   (* Remember that here, we can assume each mon is sorted already *)
-  let rec lex m1 m2 : int =
+  let rec lex m1 m2 =
     match (m1, m2) with
     | [], [] -> 0
     | _, [] -> 1

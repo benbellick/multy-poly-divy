@@ -2,7 +2,8 @@ type coeff = Q.t
 
 let pp_coeff fmt = CCFormat.fprintf fmt "%a" Q.pp_print
 
-type t = (coeff * Monomial.t) list [@@deriving show]
+type term = coeff * Monomial.t [@@deriving show]
+type t = term list [@@deriving show]
 
 let parse_term is_neg str =
   let chars = CCString.to_list str in
@@ -97,3 +98,16 @@ let%test "times_w_const_terms" =
   let expect = of_string "x2 + 2 + x3y + 2xy" in
   CCList.equal ( = ) (p1 * p2) expect
 (* TODO: equality should be irrespective of order, but don't really want to commit to one representation...*)
+
+let sort_by_ord ~order p =
+  (* We negate the compare function bc we want the biggest first *)
+  let term_compare (_c, m1) (_c, m2) = CCInt.neg @@ order m1 m2 in
+  CCList.sort term_compare p
+
+let leading_term ~order (p : t) = p |> sort_by_ord ~order |> CCList.hd
+
+let%test "leading_term" =
+  let open Monomial.Order in
+  let p = of_string "x3 + xy + z + 7" in
+  let lt = leading_term ~order:grlex p in
+  lt = (Q.one, Monomial.of_string "x3")
