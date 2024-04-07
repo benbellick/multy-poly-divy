@@ -10,3 +10,5 @@ val ( - ) : t -> t -> t
 val ( * ) : t -> t -> t
 val sort_by_ord : order:Monomial.Order.mon_compare -> t -> t
 val leading_term : order:Monomial.Order.mon_compare -> t -> term
+val leading_mon : order:Monomial.Order.mon_compare -> t -> Monomial.t
+val leading_coeff : order:Monomial.Order.mon_compare -> t -> coeff

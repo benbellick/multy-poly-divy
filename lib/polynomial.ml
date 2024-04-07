@@ -17,7 +17,7 @@ let parse_term is_neg str =
   let coeff = if is_neg then Q.neg coeff else coeff in
   (coeff, mon_str |> CCString.of_list |> Monomial.of_string)
 
-let of_string str : t =
+let of_string str =
   let strip s = CCString.replace ~sub:" " ~by:"" s in
   let str = strip str in
   let chunks = CCString.split_on_char '+' str in
@@ -74,10 +74,10 @@ let%test "add" =
   let expect = of_string "6ab3c+b2c+3abc" in
   CCList.equal ( = ) (p1 + p2) expect
 
-let mon_mult m (p : t) =
+let mon_mult m p =
   collapse @@ CCList.map (fun (coeff, mo) -> (coeff, Monomial.(m * mo))) p
 
-let term_mult (coeff, m) (p : t) =
+let term_mult (coeff, m) p =
   let p_times_coeff =
     CCList.map (fun (coeffo, mo) -> (Q.(coeff * coeffo), mo)) p
   in
@@ -104,10 +104,18 @@ let sort_by_ord ~order p =
   let term_compare (_c, m1) (_c, m2) = CCInt.neg @@ order m1 m2 in
   CCList.sort term_compare p
 
-let leading_term ~order (p : t) = p |> sort_by_ord ~order |> CCList.hd
+let leading_term ~order p = p |> sort_by_ord ~order |> CCList.hd
 
 let%test "leading_term" =
   let open Monomial.Order in
   let p = of_string "x3 + xy + z + 7" in
   let lt = leading_term ~order:grlex p in
   lt = (Q.one, Monomial.of_string "x3")
+
+let leading_coeff ~order p =
+  let coeff, _mon = leading_term ~order p in
+  coeff
+
+let leading_mon ~order p =
+  let _coeff, mon = leading_term ~order p in
+  mon
