@@ -68,6 +68,13 @@ let%test "of_string_w_const_term" =
       (Q.of_int 7, Monomial.of_string "");
     ]
 
+let%test "of_string_leading_neg" =
+  let p = of_string "-y3 + x" in
+  let p_expect =
+    [ (Q.(neg one), Monomial.of_string "y3"); (Q.one, Monomial.of_string "x") ]
+  in
+  equal p p_expect
+
 let rec collapse = function
   | [] -> []
   | (a, mon) :: rest ->
