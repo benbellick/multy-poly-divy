@@ -126,6 +126,13 @@ let%test "leading_term" =
   let lt = leading_term ~order:grlex p in
   lt = (Q.one, Monomial.of_string "x3")
 
+let div (c1, m1) (c2, m2) =
+  let open CCOption in
+  let+ m = Monomial.(m1 / m2) in
+  (Q.(c1 / c2), m)
+
+let poly_of_term t = [ t ]
+
 let leading_coeff ~order p =
   let coeff, _mon = leading_term ~order p in
   coeff
