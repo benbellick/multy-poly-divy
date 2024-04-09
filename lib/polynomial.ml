@@ -31,9 +31,28 @@ let of_string str =
   in
   CCList.flatten @@ CCList.map handle_chunk chunks
 
+let sort_by_ord ~order p =
+  (* We negate the compare function bc we want the biggest first *)
+  let term_compare (_c, m1) (_c, m2) = CCInt.neg @@ order m1 m2 in
+  CCList.sort term_compare p
+
+let equal p1 p2 =
+  (* Can later think about if this is really the most efficient way to compare.
+     For example, if we know both are sorted already by diff order,
+     don't have to resort *)
+  let p1_sorted = sort_by_ord ~order:Monomial.Order.lex p1 in
+  let p2_sorted = sort_by_ord ~order:Monomial.Order.lex p2 in
+  CCList.equal ( = ) p1_sorted p2_sorted
+
+let%test "equal" =
+  let p1 = of_string "2xy3z4 + 1/2yz + 2" in
+  let p2 = of_string "2 + 2xz4y3 + 1/2yz" in
+  let p3 = of_string "2 + 1/2zy + 2y3xz4" in
+  equal p1 p2 && equal p2 p3
+
 let%test "of_string" =
   let p = of_string "2xy3z+1/2x-z" in
-  CCList.equal ( = ) p
+  equal p
     [
       (Q.of_int 2, Monomial.of_string "xy3z");
       (Q.of_ints 1 2, Monomial.of_string "x1");
@@ -42,7 +61,7 @@ let%test "of_string" =
 
 let%test "of_string_w_const_term" =
   let p = of_string "2xyz + x2 + 7" in
-  CCList.equal ( = ) p
+  equal p
     [
       (Q.of_int 2, Monomial.of_string "xyz");
       (Q.of_int 1, Monomial.of_string "x2");
@@ -57,12 +76,13 @@ let rec collapse = function
       let sum_coeff =
         CCList.fold_left (fun sum (b, _mon) -> Q.(sum + b)) a matches
       in
-      (sum_coeff, mon) :: collapse others
+      if sum_coeff = Q.zero then collapse others
+      else (sum_coeff, mon) :: collapse others
 
 let%test "collapse" =
   let p1 = of_string "2xyz+2z" in
   let p2 = collapse @@ of_string "3xyz+z-xyz+z" in
-  CCList.equal ( = ) p1 p2
+  equal p1 p2
 
 let ( + ) p1 p2 = collapse @@ p1 @ p2
 let neg p = CCList.map (fun (c, m) -> (Q.neg c, m)) p
@@ -72,7 +92,7 @@ let%test "add" =
   let p1 = of_string "2ab3c+b2c" in
   let p2 = of_string "3abc + 4ab3c" in
   let expect = of_string "6ab3c+b2c+3abc" in
-  CCList.equal ( = ) (p1 + p2) expect
+  equal (p1 + p2) expect
 
 let mon_mult m p =
   collapse @@ CCList.map (fun (coeff, mo) -> (coeff, Monomial.(m * mo))) p
@@ -90,19 +110,13 @@ let%test "times" =
   let p1 = of_string "2x3y2z + 3xyz" in
   let p2 = of_string "xy2 + 9z4" in
   let expect = of_string "3x2y3z + 27xyz5 + 2x4y4z + 18x3y2z5" in
-  CCList.equal ( = ) (p1 * p2) expect
+  equal (p1 * p2) expect
 
 let%test "times_w_const_terms" =
   let p1 = of_string "xy + 1" in
   let p2 = of_string "x2 + 2" in
   let expect = of_string "x2 + 2 + x3y + 2xy" in
-  CCList.equal ( = ) (p1 * p2) expect
-(* TODO: equality should be irrespective of order, but don't really want to commit to one representation...*)
-
-let sort_by_ord ~order p =
-  (* We negate the compare function bc we want the biggest first *)
-  let term_compare (_c, m1) (_c, m2) = CCInt.neg @@ order m1 m2 in
-  CCList.sort term_compare p
+  equal (p1 * p2) expect
 
 let leading_term ~order p = p |> sort_by_ord ~order |> CCList.hd
 
@@ -119,3 +133,15 @@ let leading_coeff ~order p =
 let leading_mon ~order p =
   let _coeff, mon = leading_term ~order p in
   mon
+
+let zero = []
+
+let%test "zero" =
+  let p = of_string "k3 + d4 + 1" in
+  equal (p * zero) zero && CCList.equal ( = ) (p + zero) p
+
+let one = [ (Q.one, Monomial.const) ]
+
+let%test "one" =
+  let p = of_string "4a5 + 2/3d2 + 7" in
+  equal (p * one) p
