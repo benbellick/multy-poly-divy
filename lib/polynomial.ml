@@ -5,6 +5,17 @@ let pp_coeff fmt = CCFormat.fprintf fmt "%a" Q.pp_print
 type term = coeff * Monomial.t [@@deriving show]
 type t = term list [@@deriving show]
 
+let rec collapse = function
+  | [] -> []
+  | (a, mon) :: rest ->
+      let matches_ms (_b, mon_other) = mon = mon_other in
+      let matches, others = CCList.partition matches_ms rest in
+      let sum_coeff =
+        CCList.fold_left (fun sum (b, _mon) -> Q.(sum + b)) a matches
+      in
+      if sum_coeff = Q.zero then collapse others
+      else (sum_coeff, mon) :: collapse others
+
 let parse_term is_neg str =
   let chars = CCString.to_list str in
   let coeff_str, mon_str =
@@ -25,11 +36,12 @@ let of_string str =
   let handle_chunk = function
     | [] -> []
     | term :: [] -> [ parse_term false term ]
+    | "" :: negs -> CCList.map (fun neg_term -> parse_term true neg_term) negs
     | pos_term :: negs ->
         parse_term false pos_term
         :: CCList.map (fun neg_term -> parse_term true neg_term) negs
   in
-  CCList.flatten @@ CCList.map handle_chunk chunks
+  collapse @@ CCList.flatten @@ CCList.map handle_chunk chunks
 
 let sort_by_ord ~order p =
   (* We negate the compare function bc we want the biggest first *)
@@ -75,16 +87,10 @@ let%test "of_string_leading_neg" =
   in
   equal p p_expect
 
-let rec collapse = function
-  | [] -> []
-  | (a, mon) :: rest ->
-      let matches_ms (_b, mon_other) = mon = mon_other in
-      let matches, others = CCList.partition matches_ms rest in
-      let sum_coeff =
-        CCList.fold_left (fun sum (b, _mon) -> Q.(sum + b)) a matches
-      in
-      if sum_coeff = Q.zero then collapse others
-      else (sum_coeff, mon) :: collapse others
+let%test "of_string_leading_neg" =
+  let p = of_string "-y3" in
+  let p_expect = [ (Q.(neg one), Monomial.of_string "y3") ] in
+  equal p p_expect
 
 let%test "collapse" =
   let p1 = of_string "2xyz+2z" in

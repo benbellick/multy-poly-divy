@@ -48,10 +48,7 @@ let%test "div_lex" =
 let%test "div_grlex" =
   let f = Polynomial.of_string "x7y2 + x3y2 - y + 1" in
   let fs = CCList.map Polynomial.of_string [ "xy2 - x"; "-y3 + x" ] in
-  CCList.iter CCFun.(print_endline % Polynomial.show) fs;
-  let qs, r = top ~order:Monomial.Order.lex f fs in
+  let qs, r = top ~order:Monomial.Order.grlex f fs in
   let qs_expected = CCList.map Polynomial.of_string [ "x6 + x2"; "0" ] in
-  CCList.iter CCFun.(print_endline % Polynomial.show) qs_expected;
-  print_endline @@ Polynomial.show r;
   let r_expected = Polynomial.of_string "x7 + x3 - y + 1" in
   CCList.equal Polynomial.equal qs qs_expected && Polynomial.equal r r_expected
