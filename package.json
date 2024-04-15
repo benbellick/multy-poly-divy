@@ -23,7 +23,7 @@
     "init": "# Create opam switch: https://opam.ocaml.org/doc/Usage.html#opam-switch and prepare everything to work in development mode (run just once, for initialization)",
     "install-opam-npm": "# Install both opam and npm deps",
     "dune": "# Run dune, OCaml's build tool",
-    "build: "# Build the Melange apps",
+    "build": "# Build the Melange apps",
     "build-verbose": "# Build the Melange apps in verbose mode",
     "clean": "# Cleans all Melange artifacts",
     "format": "# Formats the Melange sources using ocamlformat",
