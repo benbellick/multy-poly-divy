@@ -2,16 +2,17 @@
 opam-version: "2.0"
 synopsis: "Multivariate polynomial division"
 description: "Still multivariate polynomial division"
+maintainer: ["Ben Bellick"]
 authors: ["Ben Bellick"]
 homepage: "https://github.com/benbellick/multy-poly-divy"
 bug-reports: "https://github.com/benbellick/multy-poly-divy/issues"
 depends: [
   "ocaml"
+  "reason"
+  "reason-react"
+  "melange"
   "dune" {>= "3.14"}
-  "containers"
-  "zarith"
-  "ppx_inline_test"
-  "ppx_deriving"
+  "opam-check-npm-deps"
   "odoc" {with-doc}
 ]
 build: [

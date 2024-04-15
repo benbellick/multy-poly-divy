@@ -1,4 +1,0 @@
-(executable
- (public_name multy_poly_divy)
- (name main)
- (libraries multy_poly_divy))
