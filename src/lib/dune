@@ -1,5 +1,5 @@
 (library
- (name multy_poly_divy)
+ (name lib)
  (inline_tests)
  (libraries containers zarith)
  (preprocess

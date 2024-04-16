@@ -1,7 +1,7 @@
 (executables
  (names app)
  (modes js)
- (libraries jsoo-react.lib)
+ (libraries jsoo-react.lib lib)
  (preprocess
   (pps jsoo-react.ppx)))
 
