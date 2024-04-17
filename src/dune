@@ -3,7 +3,7 @@
  (modes js)
  (libraries jsoo-react.lib lib)
  (preprocess
-  (pps jsoo-react.ppx)))
+  (pps jsoo-react.ppx js_of_ocaml-ppx)))
 
 (alias
  (name default)
