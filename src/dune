@@ -3,7 +3,18 @@
  (modes js)
  (libraries jsoo-react.lib lib)
  (preprocess
-  (pps jsoo-react.ppx js_of_ocaml-ppx)))
+  (pps gen_js_api.ppx jsoo-react.ppx js_of_ocaml-ppx)))
+
+(rule
+ (targets getters.ml)
+ (deps getters.mli)
+ (action
+  (progn
+   (with-stdout-to
+    getters.ml.tmp
+    (run %{bin:refmt} --parse=ml -i true --print=ml %{deps}))
+   (run %{bin:gen_js_api} -o %{targets} getters.ml.tmp))))
+
 
 (alias
  (name default)

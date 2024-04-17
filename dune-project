@@ -13,7 +13,7 @@
  (name multy_poly_divy)
  (synopsis "Multivariate polynomial division")
  (description "Still multivariate polynomial division")
- (depends ocaml dune containers zarith ppx_inline_test ppx_deriving jsoo-react js_of_ocaml js_of_ocaml-compiler js_of_ocaml-ppx)
+ (depends ocaml dune containers zarith ppx_inline_test ppx_deriving jsoo-react js_of_ocaml js_of_ocaml-compiler js_of_ocaml-ppx gen_js_api)
  (allow_empty)
 )
 
