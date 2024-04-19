@@ -27,14 +27,15 @@ module Quotients = struct
           div [||] [ label [||] [ mk_label i; input [||] [] ] ])
     in
     let submit_button = button [||] [ string "Submit" ] in
-    let handle_submit _e =
-      ()
-      (* let () = React.Event.Form.prevent_default e in *)
-      (* let vs = value_of_form_submit e in *)
-      (* let a, b = List.hd vs in *)
-      (* print_endline a; *)
-      (* print_endline b *)
+    let handle_submit e =
+      let open Js_of_ocaml in
+      let () = React.Event.Form.prevent_default e in
+      let t = React.Event.Form.current_target e in
+      let elms = Getters.elements t in
+      let vals = CCList.map Getters.value elms in
+      CCList.iter (fun v -> Firebug.console##log (string v)) vals
     in
+
     form
       [| onSubmit handle_submit |]
       [ div [||] @@ q_inputs @ [ submit_button ] ]
