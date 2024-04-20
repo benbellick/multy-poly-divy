@@ -43,6 +43,20 @@ let of_string str =
   in
   collapse @@ CCList.flatten @@ CCList.map handle_chunk chunks
 
+let term_to_string (coeff, m) =
+  if Q.(equal coeff one) then Monomial.to_string m
+  else if Q.(equal coeff minus_one) then "-" ^ Monomial.to_string m
+  else Q.to_string coeff ^ Monomial.to_string m
+
+let to_string p =
+  let h, t = CCList.hd_tl p in
+  let h_str = term_to_string h in
+  CCList.fold_left
+    (fun s (coeff, m) ->
+      if Q.(coeff < zero) then s ^ term_to_string (coeff, m)
+      else CCString.concat "" [ s; "+"; term_to_string (coeff, m) ])
+    h_str t
+
 let sort_by_ord ~order p =
   (* We negate the compare function bc we want the biggest first *)
   let term_compare (_c, m1) (_c, m2) = CCInt.neg @@ order m1 m2 in
@@ -91,6 +105,23 @@ let%test "of_string_leading_neg" =
   let p = of_string "-y3" in
   let p_expect = [ (Q.(neg one), Monomial.of_string "y3") ] in
   equal p p_expect
+
+let%test "to_string_simple" =
+  let p = [ (Q.of_int 2, Monomial.of_string "xy3z") ] in
+  let s_expect = "2xy3z" in
+  CCString.equal (to_string p) s_expect
+
+let%test "to_string" =
+  let p =
+    [
+      (Q.of_int 2, Monomial.of_string "xy3z");
+      (Q.of_ints 1 2, Monomial.of_string "x1");
+      (Q.of_int (-1), Monomial.of_string "z");
+      (Q.of_int 1, Monomial.of_string "xyz");
+    ]
+  in
+  let s_expect = "2xy3z+1/2x-z+xyz" in
+  CCString.equal (to_string p) s_expect
 
 let%test "collapse" =
   let p1 = of_string "2xyz+2z" in

@@ -47,6 +47,18 @@ let%test "collapse" =
     [ ('x', 2); ('y', 3) ]
     (collapse [ ('x', 1); ('y', 2); ('x', 1); ('y', 1) ])
 
+let to_string m =
+  let to_str_ls (v, e) =
+    if e > 1 then [ CCChar.to_string v; string_of_int e ]
+    else [ CCChar.to_string v ]
+  in
+  CCString.concat "" @@ CCList.flatten @@ CCList.map to_str_ls m
+
+let%test "to_string" =
+  let m = [ ('a', 1); ('x', 2); ('y', 3); ('z', 1) ] in
+  let s = to_string m in
+  s = "ax2y3z"
+
 (* The monomial remains sorted in lex as long as m1 is sorted *)
 let ( * ) m1 m2 = sort_mon @@ collapse @@ m1 @ m2
 
