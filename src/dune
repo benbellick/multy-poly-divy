@@ -3,7 +3,7 @@
  (modes js)
  (libraries jsoo-react.lib lib)
  (preprocess
-  (pps gen_js_api.ppx jsoo-react.ppx js_of_ocaml-ppx)))
+  (pps gen_js_api.ppx jsoo-react.ppx js_of_ocaml-ppx ppx_deriving.enum ppx_deriving.show)))
 
 (rule
  (targets getters.ml)
