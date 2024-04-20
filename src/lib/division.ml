@@ -25,6 +25,7 @@ let step ~order ~fs ~qs ~r ~p =
       (fs, qs, r_updated, p_updated)
 
 let top ~order f fs =
+  (* returns (quotient results, remainders) *)
   let rec loop ~fs ~qs ~r ~p =
     if Polynomial.(equal p zero) then (qs, r)
     else

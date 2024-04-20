@@ -21,11 +21,11 @@ let value_of_form_submit event =
 (* |> Js_of_ocaml.Form.get_form_contents *)
 
 module AlgoInputs = struct
-  let%component make ~quo_count ~set_quotients ~set_dividend () =
+  let%component make ~divisor_count ~set_divisors ~set_dividend () =
     let _ = set_dividend in
     let mk_label i = string @@ "q_" ^ string_of_int i ^ ": " in
     let q_inputs =
-      CCList.init quo_count (fun i ->
+      CCList.init divisor_count (fun i ->
           div [||] [ label [||] [ mk_label i; input [||] [] ] ])
     in
     let submit_button = button [||] [ string "Submit" ] in
@@ -36,7 +36,7 @@ module AlgoInputs = struct
       let vals = CCList.map Getters.value elms in
       (* CCList.iter (fun v -> Firebug.console##log (string v)) vals; *)
       let polys = CCList.map Polynomial.of_string vals in
-      set_quotients (fun _ -> polys)
+      set_divisors (fun _ -> polys)
     in
     let f_input = label [||] [ string "f: "; input [||] [] ] in
     form
@@ -77,9 +77,14 @@ module OrderSelection = struct
       (CCList.map mk_option [ Lex; Grlex; Grevlex ])
 end
 
+(* module DisplayResult = struct *)
+(*   let%component make ~dividend ~quotients ~mon_order_enum () = *)
+
+(* end *)
+
 let%component make () =
-  let quo_count, set_quo_count = React.use_state CCFun.(const 1) in
-  let quotients, set_quotients = React.use_state CCFun.(const []) in
+  let divisor_count, set_divisor_count = React.use_state CCFun.(const 1) in
+  let divisors, set_divisors = React.use_state CCFun.(const []) in
   let _dividend, set_dividend = React.use_state CCFun.(const None) in
   let mon_order_enum, set_mon_order_enum =
     React.use_state CCFun.(const (ord_selection_to_enum Lex))
@@ -93,17 +98,17 @@ let%component make () =
           input
             [|
               type_ "number";
-              value (string_of_int quo_count);
+              value (string_of_int divisor_count);
               onChange (fun e ->
                   e |> React.Event.Form.target |> Getters.value
                   |> int_of_string_opt
                   |> function
-                  | Some i -> set_quo_count (fun _ -> i)
+                  | Some i -> set_divisor_count (fun _ -> i)
                   | None -> ());
               min "1";
             |]
             [];
         ];
-      AlgoInputs.make ~quo_count ~set_quotients ~set_dividend ();
-      div [||] (CCList.map CCFun.(string % Polynomial.to_string) quotients);
+      AlgoInputs.make ~divisor_count ~set_divisors ~set_dividend ();
+      div [||] (CCList.map CCFun.(string % Polynomial.to_string) divisors);
     ]
