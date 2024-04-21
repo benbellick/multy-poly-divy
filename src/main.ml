@@ -41,13 +41,40 @@ module Explanation = struct
           [
             string
               "I hope for this to be an easy way to compare the various \
-               computations without needed to learn a whole CAS";
+               monomial orders without needed to learn a CAS";
           ];
         p [||]
           [
             string
               "Please don't hestiate to reach out if you have any \
                comments/questions!";
+          ];
+        h2 [||] [ string "Usage" ];
+        p [||]
+          [
+            string "Begin by selecting a ";
+            a
+              [| href "https://en.wikipedia.org/wiki/Monomial_order" |]
+              [ string "Monomial Order" ];
+            string
+              ". This determines how to order different monomials. (See the \
+               link for more information.) ";
+            string "Then select the number of divisors by the number input. ";
+            string
+              "Finally, you can input your polynomial dividend into the input \
+               labeled f, and you can put the divisors into the various inputs \
+               labeled q_*. ";
+            string
+              "The convention for the polynomials is that numbers after \
+               characters are interpreted as exponents. So as an example, \
+               \"1/2xy2z-z\" is parsed as (1/2)(x^1)(y^2)(z^1) + (-1)(z^1). An \
+               empty string is interpreted as a zero.";
+          ];
+        p [||]
+          [
+            string
+              "Note that the only error handling performed is to ensure you do \
+               not divide by zero. Otherwise, the onus is on you :)";
           ];
       ]
 end
@@ -72,13 +99,15 @@ module AlgoInputs = struct
       (* The last one is empy from submit button  *)
       let vals = CCList.take (CCList.length vals - 1) vals in
       let dividend_s, divisors_s = CCList.hd_tl vals in
-      (* CCList.iter *)
-      (*   (fun v -> Js_of_ocaml.Firebug.console##log (string v)) *)
-      (*   divisors_s; *)
-      let divisors = CCList.map Polynomial.of_string divisors_s in
+      CCList.iter
+        (fun v -> Js_of_ocaml.Firebug.console##log (string v))
+        divisors_s;
       let dividend = Polynomial.of_string dividend_s in
-      set_divisors (fun _ -> divisors);
-      set_dividend (fun _ -> dividend)
+      set_dividend (fun _ -> dividend);
+      let divisors = CCList.map Polynomial.of_string divisors_s in
+      print_endline "Our parsed divisors";
+      CCList.iter (fun d -> print_endline @@ Polynomial.show d) divisors;
+      set_divisors (fun _ -> divisors)
     in
 
     let f_input = div [| Prop.style sty |] [ string "f: "; input [||] [] ] in
@@ -137,29 +166,36 @@ module DisplayResult = struct
       ]
 
   let%component make ~dividend ~divisors ~mon_order_enum () =
-    let mon_compare =
-      let open Monomial.Order in
-      let ord_selection =
-        CCOption.get_exn_or "Bad enum val"
-          (ord_selection_of_enum mon_order_enum)
+    CCList.iter (fun d -> print_endline @@ Polynomial.show d) divisors;
+    if CCList.exists (fun d -> Polynomial.(equal d zero)) divisors then
+      div
+        [| Prop.style React.Dom.Style.(make [| color "red" |]) |]
+        [ string "One of your divisors is a zero!!" ]
+    else
+      let mon_compare =
+        let open Monomial.Order in
+        let ord_selection =
+          CCOption.get_exn_or "Bad enum val"
+            (ord_selection_of_enum mon_order_enum)
+        in
+        match ord_selection with
+        | Lex -> lex
+        | Grlex -> grlex
+        | Grevlex -> grevlex
       in
-      match ord_selection with
-      | Lex -> lex
-      | Grlex -> grlex
-      | Grevlex -> grevlex
-    in
-    print_endline "Beginning division...";
-    let quotients, remainder =
-      Division.top ~order:mon_compare dividend divisors
-    in
-    print_endline "Division complete";
-    let remainder_display =
-      div [||] [ string "r: "; string (Polynomial.to_string remainder) ]
-    in
-    CCList.iter
-      (fun v -> Js_of_ocaml.Firebug.console##log (Polynomial.show v))
-      quotients;
-    div [||] (CCList.mapi mk_quotient_display quotients @ [ remainder_display ])
+      print_endline "Beginning division...";
+      let quotients, remainder =
+        Division.top ~order:mon_compare dividend divisors
+      in
+      print_endline "Division complete";
+      let remainder_display =
+        div [||] [ string "r: "; string (Polynomial.to_string remainder) ]
+      in
+      CCList.iter
+        (fun v -> Js_of_ocaml.Firebug.console##log (Polynomial.show v))
+        quotients;
+      div [||]
+        (CCList.mapi mk_quotient_display quotients @ [ remainder_display ])
 end
 
 let%component make () =

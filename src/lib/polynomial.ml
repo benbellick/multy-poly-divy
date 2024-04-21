@@ -5,6 +5,8 @@ let pp_coeff fmt = CCFormat.fprintf fmt "%a" Q.pp_print
 type term = coeff * Monomial.t [@@deriving show]
 type t = term list [@@deriving show]
 
+let zero = []
+
 let rec collapse = function
   | [] -> []
   | (a, mon) :: rest ->
@@ -29,19 +31,21 @@ let parse_term is_neg str =
   (coeff, mon_str |> CCString.of_list |> Monomial.of_string)
 
 let of_string str =
-  let strip s = CCString.replace ~sub:" " ~by:"" s in
-  let str = strip str in
-  let chunks = CCString.split_on_char '+' str in
-  let chunks = CCList.map (CCString.split_on_char '-') chunks in
-  let handle_chunk = function
-    | [] -> []
-    | term :: [] -> [ parse_term false term ]
-    | "" :: negs -> CCList.map (fun neg_term -> parse_term true neg_term) negs
-    | pos_term :: negs ->
-        parse_term false pos_term
-        :: CCList.map (fun neg_term -> parse_term true neg_term) negs
-  in
-  collapse @@ CCList.flatten @@ CCList.map handle_chunk chunks
+  if CCString.is_empty str then zero
+  else
+    let strip s = CCString.replace ~sub:" " ~by:"" s in
+    let str = strip str in
+    let chunks = CCString.split_on_char '+' str in
+    let chunks = CCList.map (CCString.split_on_char '-') chunks in
+    let handle_chunk = function
+      | [] -> []
+      | term :: [] -> [ parse_term false term ]
+      | "" :: negs -> CCList.map (fun neg_term -> parse_term true neg_term) negs
+      | pos_term :: negs ->
+          parse_term false pos_term
+          :: CCList.map (fun neg_term -> parse_term true neg_term) negs
+    in
+    collapse @@ CCList.flatten @@ CCList.map handle_chunk chunks
 
 let term_to_string = function
   | coeff, mon when Monomial.(equal mon const) -> Q.to_string coeff
