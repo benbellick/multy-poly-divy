@@ -59,11 +59,18 @@ module Explanation = struct
             string
               ". This determines how to order different monomials. (See the \
                link for more information.) ";
-            string "Then select the number of divisors by the number input. ";
+          ];
+        p [||]
+          [ string "Then select the number of divisors via the number input. " ];
+        p [||]
+          [
             string
               "Finally, you can input your polynomial dividend into the input \
                labeled f, and you can put the divisors into the various inputs \
                labeled q_*. ";
+          ];
+        p [||]
+          [
             string
               "The convention for the polynomials is that numbers after \
                characters are interpreted as exponents. So as an example, \
