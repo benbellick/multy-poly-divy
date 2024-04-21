@@ -5,6 +5,8 @@ let pp_coeff fmt = CCFormat.fprintf fmt "%a" Q.pp_print
 type term = coeff * Monomial.t [@@deriving show]
 type t = term list [@@deriving show]
 
+let zero = []
+
 let rec collapse = function
   | [] -> []
   | (a, mon) :: rest ->
@@ -29,19 +31,38 @@ let parse_term is_neg str =
   (coeff, mon_str |> CCString.of_list |> Monomial.of_string)
 
 let of_string str =
-  let strip s = CCString.replace ~sub:" " ~by:"" s in
-  let str = strip str in
-  let chunks = CCString.split_on_char '+' str in
-  let chunks = CCList.map (CCString.split_on_char '-') chunks in
-  let handle_chunk = function
-    | [] -> []
-    | term :: [] -> [ parse_term false term ]
-    | "" :: negs -> CCList.map (fun neg_term -> parse_term true neg_term) negs
-    | pos_term :: negs ->
-        parse_term false pos_term
-        :: CCList.map (fun neg_term -> parse_term true neg_term) negs
-  in
-  collapse @@ CCList.flatten @@ CCList.map handle_chunk chunks
+  if CCString.is_empty str then zero
+  else
+    let strip s = CCString.replace ~sub:" " ~by:"" s in
+    let str = strip str in
+    let chunks = CCString.split_on_char '+' str in
+    let chunks = CCList.map (CCString.split_on_char '-') chunks in
+    let handle_chunk = function
+      | [] -> []
+      | term :: [] -> [ parse_term false term ]
+      | "" :: negs -> CCList.map (fun neg_term -> parse_term true neg_term) negs
+      | pos_term :: negs ->
+          parse_term false pos_term
+          :: CCList.map (fun neg_term -> parse_term true neg_term) negs
+    in
+    collapse @@ CCList.flatten @@ CCList.map handle_chunk chunks
+
+let term_to_string = function
+  | coeff, mon when Monomial.(equal mon const) -> Q.to_string coeff
+  | coeff, mon when Q.(coeff = minus_one) -> "-" ^ Monomial.to_string mon
+  | coeff, mon when Q.(coeff = one) -> Monomial.to_string mon
+  | coeff, mon -> Q.to_string coeff ^ Monomial.to_string mon
+
+let to_string p =
+  match p with
+  | [] -> "0"
+  | h :: t ->
+      let h_str = term_to_string h in
+      CCList.fold_left
+        (fun s (coeff, m) ->
+          if Q.(coeff < zero) then s ^ term_to_string (coeff, m)
+          else CCString.concat "" [ s; "+"; term_to_string (coeff, m) ])
+        h_str t
 
 let sort_by_ord ~order p =
   (* We negate the compare function bc we want the biggest first *)
@@ -91,6 +112,23 @@ let%test "of_string_leading_neg" =
   let p = of_string "-y3" in
   let p_expect = [ (Q.(neg one), Monomial.of_string "y3") ] in
   equal p p_expect
+
+let%test "to_string_simple" =
+  let p = [ (Q.of_int 2, Monomial.of_string "xy3z") ] in
+  let s_expect = "2xy3z" in
+  CCString.equal (to_string p) s_expect
+
+let%test "to_string" =
+  let p =
+    [
+      (Q.of_int 2, Monomial.of_string "xy3z");
+      (Q.of_ints 1 2, Monomial.of_string "x1");
+      (Q.of_int (-1), Monomial.of_string "z");
+      (Q.of_int 1, Monomial.of_string "xyz");
+    ]
+  in
+  let s_expect = "2xy3z+1/2x-z+xyz" in
+  CCString.equal (to_string p) s_expect
 
 let%test "collapse" =
   let p1 = of_string "2xyz+2z" in

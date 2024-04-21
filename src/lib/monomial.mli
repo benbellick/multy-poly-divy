@@ -3,6 +3,7 @@ type exp
 type t
 
 val of_string : string -> t
+val to_string : t -> string
 val pp : Format.formatter -> t -> unit
 val show : t -> string
 val ( * ) : t -> t -> t

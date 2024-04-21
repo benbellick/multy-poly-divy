@@ -25,6 +25,7 @@ let step ~order ~fs ~qs ~r ~p =
       (fs, qs, r_updated, p_updated)
 
 let top ~order f fs =
+  (* returns (quotient results, remainders) *)
   let rec loop ~fs ~qs ~r ~p =
     if Polynomial.(equal p zero) then (qs, r)
     else
@@ -37,7 +38,7 @@ let top ~order f fs =
   let p = f in
   loop ~fs ~qs ~r ~p
 
-let%test "div_lex" =
+let%test "div_lex1" =
   let f = Polynomial.of_string "x2y + xy2 + y2" in
   let fs = CCList.map Polynomial.of_string [ "xy-1"; "y2-1" ] in
   let qs, r = top ~order:Monomial.Order.lex f fs in
@@ -45,7 +46,23 @@ let%test "div_lex" =
   let r_expected = Polynomial.of_string "x + y + 1" in
   CCList.equal Polynomial.equal qs qs_expected && Polynomial.equal r r_expected
 
-let%test "div_grlex" =
+let%test "div_lex1_swap_order" =
+  let f = Polynomial.of_string "x2y + xy2 + y2" in
+  let fs = CCList.map Polynomial.of_string [ "y2-1"; "xy-1" ] in
+  let qs, r = top ~order:Monomial.Order.lex f fs in
+  let qs_expected = CCList.map Polynomial.of_string [ "x + 1"; "x" ] in
+  let r_expected = Polynomial.of_string "2x + 1" in
+  CCList.equal Polynomial.equal qs qs_expected && Polynomial.equal r r_expected
+
+let%test "div_grlex1_swap_order" =
+  let f = Polynomial.of_string "x2y + xy2 + y2" in
+  let fs = CCList.map Polynomial.of_string [ "y2-1"; "xy-1" ] in
+  let qs, r = top ~order:Monomial.Order.grlex f fs in
+  let qs_expected = CCList.map Polynomial.of_string [ "x + 1"; "x" ] in
+  let r_expected = Polynomial.of_string "2x+1" in
+  CCList.equal Polynomial.equal qs qs_expected && Polynomial.equal r r_expected
+
+let%test "div_grlex2" =
   let f = Polynomial.of_string "x7y2 + x3y2 - y + 1" in
   let fs = CCList.map Polynomial.of_string [ "xy2 - x"; "-y3 + x" ] in
   let qs, r = top ~order:Monomial.Order.grlex f fs in

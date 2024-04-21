@@ -15,6 +15,8 @@ let sort_mon (m : t) =
   CCList.sort (fun (v1, _exp) (v2, _exp) -> compare v1 v2) m
 
 let of_string str =
+  (* print_endline "here is the string...."; *)
+  (* print_endline str; *)
   let rec parse_chars = function
     | [] -> []
     | chars ->
@@ -46,6 +48,18 @@ let%test "collapse" =
   equal
     [ ('x', 2); ('y', 3) ]
     (collapse [ ('x', 1); ('y', 2); ('x', 1); ('y', 1) ])
+
+let to_string m =
+  let to_str_ls (v, e) =
+    if e > 1 then [ CCChar.to_string v; string_of_int e ]
+    else [ CCChar.to_string v ]
+  in
+  CCString.concat "" @@ CCList.flatten @@ CCList.map to_str_ls m
+
+let%test "to_string" =
+  let m = [ ('a', 1); ('x', 2); ('y', 3); ('z', 1) ] in
+  let s = to_string m in
+  s = "ax2y3z"
 
 (* The monomial remains sorted in lex as long as m1 is sorted *)
 let ( * ) m1 m2 = sort_mon @@ collapse @@ m1 @ m2
@@ -126,9 +140,19 @@ module Order = struct
     let m2 = of_string "a3b2" in
     grlex m1 m2 < 0
 
-  let grevlex m1 m2 = CCInt.neg @@ grlex (CCList.rev m1) (CCList.rev m2)
+  let grevlex m1 m2 =
+    let o1 = ord m1 in
+    let o2 = ord m2 in
+    if o1 < o2 then -1
+    else if o1 > o2 then 1
+    else CCInt.neg @@ grlex (CCList.rev m1) (CCList.rev m2)
 
-  let%test "grevlex" =
+  let%test "grevlex_diff_ord" =
+    let m1 = of_string "xy4z2" in
+    let m2 = of_string "x4yz3" in
+    grevlex m1 m2 < 0
+
+  let%test "grevlex_same_ord" =
     let m1 = of_string "xy5z2" in
     let m2 = of_string "x4yz3" in
     grevlex m1 m2 > 0

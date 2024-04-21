@@ -10,8 +10,14 @@ depends: [
   "dune" {>= "3.14"}
   "containers"
   "zarith"
+  "zarith_stubs_js"
   "ppx_inline_test"
   "ppx_deriving"
+  "jsoo-react"
+  "js_of_ocaml"
+  "js_of_ocaml-compiler"
+  "js_of_ocaml-ppx"
+  "gen_js_api"
   "odoc" {with-doc}
 ]
 build: [
