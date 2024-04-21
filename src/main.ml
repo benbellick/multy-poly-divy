@@ -169,7 +169,7 @@ module DisplayResult = struct
     CCList.iter (fun d -> print_endline @@ Polynomial.show d) divisors;
     if CCList.exists (fun d -> Polynomial.(equal d zero)) divisors then
       div
-        [| Prop.style React.Dom.Style.(make [| color "red" |]) |]
+        [| Prop.style React.Dom.Style.(make [| background_color "red" |]) |]
         [ string "One of your divisors is a zero!!" ]
     else
       let mon_compare =
@@ -191,11 +191,33 @@ module DisplayResult = struct
       let remainder_display =
         div [||] [ string "r: "; string (Polynomial.to_string remainder) ]
       in
+      let summary_display =
+        let prods_l =
+          CCList.map2
+            (fun div quo ->
+              "(" ^ Polynomial.to_string quo ^ ")(" ^ Polynomial.to_string div
+              ^ ")")
+            divisors quotients
+        in
+        let str =
+          "Thus: "
+          ^ Polynomial.to_string dividend
+          ^ "="
+          ^ CCString.concat "+" prods_l
+          ^ "+"
+          ^ Polynomial.to_string remainder
+        in
+        div [||] [ string str ]
+      in
       CCList.iter
         (fun v -> Js_of_ocaml.Firebug.console##log (Polynomial.show v))
         quotients;
-      div [||]
-        (CCList.mapi mk_quotient_display quotients @ [ remainder_display ])
+      div
+        [|
+          Prop.style React.Dom.Style.(make [| background_color "lightgreen" |]);
+        |]
+        (CCList.mapi mk_quotient_display quotients
+        @ [ remainder_display; summary_display ])
 end
 
 let%component make () =
