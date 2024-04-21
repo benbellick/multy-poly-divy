@@ -85,6 +85,13 @@ module OrderSelection = struct
 end
 
 module DisplayResult = struct
+  let mk_quotient_display idx p =
+    div [||]
+      [
+        string ("q_" ^ string_of_int idx ^ ": ");
+        string (Polynomial.to_string p);
+      ]
+
   let%component make ~dividend ~divisors ~mon_order_enum () =
     let mon_compare =
       let open Monomial.Order in
@@ -97,13 +104,16 @@ module DisplayResult = struct
       | Grlex -> grevlex
       | Grevlex -> grevlex
     in
-    let quotients, _remainder =
+    let quotients, remainder =
       Division.top ~order:mon_compare dividend divisors
     in
+    let remainder_display =
+      div [||] [ string "r: "; string (Polynomial.to_string remainder) ]
+    in
     CCList.iter
-      (fun v -> Js_of_ocaml.Firebug.console##log (Polynomial.to_string v))
+      (fun v -> Js_of_ocaml.Firebug.console##log (Polynomial.show v))
       quotients;
-    div [||] []
+    div [||] (CCList.mapi mk_quotient_display quotients @ [ remainder_display ])
 end
 
 let%component make () =

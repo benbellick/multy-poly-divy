@@ -43,10 +43,11 @@ let of_string str =
   in
   collapse @@ CCList.flatten @@ CCList.map handle_chunk chunks
 
-let term_to_string (coeff, m) =
-  if Q.(equal coeff one) then Monomial.to_string m
-  else if Q.(equal coeff minus_one) then "-" ^ Monomial.to_string m
-  else Q.to_string coeff ^ Monomial.to_string m
+let term_to_string = function
+  | coeff, mon when Monomial.(equal mon const) -> Q.to_string coeff
+  | coeff, mon when Q.(coeff = minus_one) -> "-" ^ Monomial.to_string mon
+  | coeff, mon when Q.(coeff = one) -> Monomial.to_string mon
+  | coeff, mon -> Q.to_string coeff ^ Monomial.to_string mon
 
 let to_string p =
   match p with
