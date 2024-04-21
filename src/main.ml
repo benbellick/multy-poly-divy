@@ -45,6 +45,17 @@ module Explanation = struct
           ];
         p [||]
           [
+            string "You can see the source code ";
+            a
+              [| href "https://github.com/benbellick/multy-poly-divy" |]
+              [ string "here" ];
+            string ". And you can find my contact info ";
+            a
+              [| href "https://benbellick.github.io/contact.html" |]
+              [ string "here" ];
+          ];
+        p [||]
+          [
             string
               "Please don't hestiate to reach out if you have any \
                comments/questions!";
