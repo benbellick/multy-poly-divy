@@ -101,12 +101,14 @@ module DisplayResult = struct
       in
       match ord_selection with
       | Lex -> lex
-      | Grlex -> grevlex
+      | Grlex -> grlex
       | Grevlex -> grevlex
     in
+    print_endline "Beginning division...";
     let quotients, remainder =
       Division.top ~order:mon_compare dividend divisors
     in
+    print_endline "Division complete";
     let remainder_display =
       div [||] [ string "r: "; string (Polynomial.to_string remainder) ]
     in

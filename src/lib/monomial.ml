@@ -140,9 +140,19 @@ module Order = struct
     let m2 = of_string "a3b2" in
     grlex m1 m2 < 0
 
-  let grevlex m1 m2 = CCInt.neg @@ grlex (CCList.rev m1) (CCList.rev m2)
+  let grevlex m1 m2 =
+    let o1 = ord m1 in
+    let o2 = ord m2 in
+    if o1 < o2 then -1
+    else if o1 > o2 then 1
+    else CCInt.neg @@ grlex (CCList.rev m1) (CCList.rev m2)
 
-  let%test "grevlex" =
+  let%test "grevlex_diff_ord" =
+    let m1 = of_string "xy4z2" in
+    let m2 = of_string "x4yz3" in
+    grevlex m1 m2 < 0
+
+  let%test "grevlex_same_ord" =
     let m1 = of_string "xy5z2" in
     let m2 = of_string "x4yz3" in
     grevlex m1 m2 > 0
