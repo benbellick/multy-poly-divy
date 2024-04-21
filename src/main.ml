@@ -20,12 +20,48 @@ let value_of_form_submit event =
   event |> React.Event.Form.target |> React.Dom.dom_element_of_js
 (* |> Js_of_ocaml.Form.get_form_contents *)
 
+module Explanation = struct
+  let%component make () =
+    div [||]
+      [
+        h1 [||] [ string "Multivariate Polynomial Division Calculator" ];
+        p [||]
+          [
+            string
+              "This is a simple online demonstration of the generalized form \
+               of multivariate polynomial division";
+          ];
+        p [||]
+          [
+            string
+              "I become interested in writing one over the course of reading \
+               Ideals, Varities, and Algorithms by Cox, Little, and O'Shea";
+          ];
+        p [||]
+          [
+            string
+              "I hope for this to be an easy way to compare the various \
+               computations without needed to learn a whole CAS";
+          ];
+        p [||]
+          [
+            string
+              "Please don't hestiate to reach out if you have any \
+               comments/questions!";
+          ];
+      ]
+end
+
 module AlgoInputs = struct
   let%component make ~divisor_count ~set_divisors ~set_dividend () =
-    let mk_label i = string @@ "q_" ^ string_of_int i ^ ": " in
+    let sty =
+      React.Dom.Style.(
+        make [| display "flex"; justify_content "space-between" |])
+    in
+    let mk_label i = label [||] [ string @@ "q_" ^ string_of_int i ^ ": " ] in
     let q_inputs =
       CCList.init divisor_count (fun i ->
-          div [||] [ label [||] [ mk_label i; input [||] [] ] ])
+          div [| Prop.style sty |] [ mk_label i; input [||] [] ])
     in
     let submit_button = button [||] [ string "Submit" ] in
     let handle_submit e =
@@ -45,7 +81,7 @@ module AlgoInputs = struct
       set_dividend (fun _ -> dividend)
     in
 
-    let f_input = label [||] [ string "f: "; input [||] [] ] in
+    let f_input = div [| Prop.style sty |] [ string "f: "; input [||] [] ] in
     form
       [| onSubmit handle_submit |]
       [ div [||] @@ (f_input :: q_inputs) @ [ submit_button ] ]
@@ -74,14 +110,22 @@ module OrderSelection = struct
         [| os |> ord_selection_to_enum |> string_of_int |> value |]
         [ os |> show_ord_selection |> string ]
     in
-    select
-      [|
-        onChange (fun e ->
-            e |> React.Event.Form.target |> Getters.value |> int_of_string
-            |> CCFun.(set_mon_order_enum % const));
-        value (string_of_int mon_order_enum);
-      |]
-      (CCList.map mk_option [ Lex; Grlex; Grevlex ])
+    div [||]
+      [
+        label [||]
+          [
+            string "Monomial Order: ";
+            select
+              [|
+                onChange (fun e ->
+                    e |> React.Event.Form.target |> Getters.value
+                    |> int_of_string
+                    |> CCFun.(set_mon_order_enum % const));
+                value (string_of_int mon_order_enum);
+              |]
+              (CCList.map mk_option [ Lex; Grlex; Grevlex ]);
+          ];
+      ]
 end
 
 module DisplayResult = struct
@@ -125,26 +169,35 @@ let%component make () =
   let mon_order_enum, set_mon_order_enum =
     React.use_state CCFun.(const (ord_selection_to_enum Lex))
   in
+  let data_display_div_style =
+    React.Dom.Style.(
+      make [| display "flex"; flex_direction "column"; width "fit-content" |])
+  in
   div [||]
     [
-      OrderSelection.make ~mon_order_enum ~set_mon_order_enum ();
-      label [||]
+      Explanation.make ();
+      div
+        [| Prop.style data_display_div_style |]
         [
-          string "# of Divisors:";
-          input
-            [|
-              type_ "number";
-              value (string_of_int divisor_count);
-              onChange (fun e ->
-                  e |> React.Event.Form.target |> Getters.value
-                  |> int_of_string_opt
-                  |> function
-                  | Some i -> set_divisor_count (fun _ -> i)
-                  | None -> ());
-              min "1";
-            |]
-            [];
+          OrderSelection.make ~mon_order_enum ~set_mon_order_enum ();
+          label [||]
+            [
+              string "# of Divisors:";
+              input
+                [|
+                  type_ "number";
+                  value (string_of_int divisor_count);
+                  onChange (fun e ->
+                      e |> React.Event.Form.target |> Getters.value
+                      |> int_of_string_opt
+                      |> function
+                      | Some i -> set_divisor_count (fun _ -> i)
+                      | None -> ());
+                  min "1";
+                |]
+                [];
+            ];
+          AlgoInputs.make ~divisor_count ~set_divisors ~set_dividend ();
+          DisplayResult.make ~dividend ~divisors ~mon_order_enum ();
         ];
-      AlgoInputs.make ~divisor_count ~set_divisors ~set_dividend ();
-      DisplayResult.make ~dividend ~divisors ~mon_order_enum ();
     ]
