@@ -49,13 +49,15 @@ let term_to_string (coeff, m) =
   else Q.to_string coeff ^ Monomial.to_string m
 
 let to_string p =
-  let h, t = CCList.hd_tl p in
-  let h_str = term_to_string h in
-  CCList.fold_left
-    (fun s (coeff, m) ->
-      if Q.(coeff < zero) then s ^ term_to_string (coeff, m)
-      else CCString.concat "" [ s; "+"; term_to_string (coeff, m) ])
-    h_str t
+  match p with
+  | [] -> "0"
+  | h :: t ->
+      let h_str = term_to_string h in
+      CCList.fold_left
+        (fun s (coeff, m) ->
+          if Q.(coeff < zero) then s ^ term_to_string (coeff, m)
+          else CCString.concat "" [ s; "+"; term_to_string (coeff, m) ])
+        h_str t
 
 let sort_by_ord ~order p =
   (* We negate the compare function bc we want the biggest first *)

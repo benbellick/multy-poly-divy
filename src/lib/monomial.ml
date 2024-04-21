@@ -15,6 +15,8 @@ let sort_mon (m : t) =
   CCList.sort (fun (v1, _exp) (v2, _exp) -> compare v1 v2) m
 
 let of_string str =
+  (* print_endline "here is the string...."; *)
+  (* print_endline str; *)
   let rec parse_chars = function
     | [] -> []
     | chars ->

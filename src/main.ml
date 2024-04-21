@@ -22,7 +22,6 @@ let value_of_form_submit event =
 
 module AlgoInputs = struct
   let%component make ~divisor_count ~set_divisors ~set_dividend () =
-    let _ = set_dividend in
     let mk_label i = string @@ "q_" ^ string_of_int i ^ ": " in
     let q_inputs =
       CCList.init divisor_count (fun i ->
@@ -34,10 +33,18 @@ module AlgoInputs = struct
       let t = React.Event.Form.current_target e in
       let elms = Getters.elements t in
       let vals = CCList.map Getters.value elms in
-      (* CCList.iter (fun v -> Firebug.console##log (string v)) vals; *)
-      let polys = CCList.map Polynomial.of_string vals in
-      set_divisors (fun _ -> polys)
+      (* The last one is empy from submit button  *)
+      let vals = CCList.take (CCList.length vals - 1) vals in
+      let dividend_s, divisors_s = CCList.hd_tl vals in
+      (* CCList.iter *)
+      (*   (fun v -> Js_of_ocaml.Firebug.console##log (string v)) *)
+      (*   divisors_s; *)
+      let divisors = CCList.map Polynomial.of_string divisors_s in
+      let dividend = Polynomial.of_string dividend_s in
+      set_divisors (fun _ -> divisors);
+      set_dividend (fun _ -> dividend)
     in
+
     let f_input = label [||] [ string "f: "; input [||] [] ] in
     form
       [| onSubmit handle_submit |]
@@ -77,15 +84,32 @@ module OrderSelection = struct
       (CCList.map mk_option [ Lex; Grlex; Grevlex ])
 end
 
-(* module DisplayResult = struct *)
-(*   let%component make ~dividend ~quotients ~mon_order_enum () = *)
-
-(* end *)
+module DisplayResult = struct
+  let%component make ~dividend ~divisors ~mon_order_enum () =
+    let mon_compare =
+      let open Monomial.Order in
+      let ord_selection =
+        CCOption.get_exn_or "Bad enum val"
+          (ord_selection_of_enum mon_order_enum)
+      in
+      match ord_selection with
+      | Lex -> lex
+      | Grlex -> grevlex
+      | Grevlex -> grevlex
+    in
+    let quotients, _remainder =
+      Division.top ~order:mon_compare dividend divisors
+    in
+    CCList.iter
+      (fun v -> Js_of_ocaml.Firebug.console##log (Polynomial.to_string v))
+      quotients;
+    div [||] []
+end
 
 let%component make () =
   let divisor_count, set_divisor_count = React.use_state CCFun.(const 1) in
   let divisors, set_divisors = React.use_state CCFun.(const []) in
-  let _dividend, set_dividend = React.use_state CCFun.(const None) in
+  let dividend, set_dividend = React.use_state CCFun.(const Polynomial.one) in
   let mon_order_enum, set_mon_order_enum =
     React.use_state CCFun.(const (ord_selection_to_enum Lex))
   in
@@ -110,5 +134,5 @@ let%component make () =
             [];
         ];
       AlgoInputs.make ~divisor_count ~set_divisors ~set_dividend ();
-      div [||] (CCList.map CCFun.(string % Polynomial.to_string) divisors);
+      DisplayResult.make ~dividend ~divisors ~mon_order_enum ();
     ]
