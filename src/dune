@@ -9,11 +9,7 @@
  (targets getters.ml)
  (deps getters.mli)
  (action
-  (progn
-   (with-stdout-to
-    getters.ml.tmp
-    (run %{bin:refmt} --parse=ml -i true --print=ml %{deps}))
-   (run %{bin:gen_js_api} -o %{targets} getters.ml.tmp))))
+   (run %{bin:gen_js_api} -o %{targets} getters.mli)))
 
 
 (alias
