@@ -4,7 +4,7 @@ This is a simple repository implementing multivariate polynomial division as des
 
 I implemented it originally just to make sure I understood the algorithm, but I also wanted to see how difficult it would be to spin up a small website from an OCaml codebase. 
 
-I may continue to expand and add more algorithms as I see fit as I continue to read. I hope that this is useful both interested in learning about the algorithm and using the calculator, as well as people interested in learning how to spin out OCaml libs into small demo websites!
+I may continue to expand and add more algorithms as I see fit while continuing to read. I hope that this is useful both for those interested in learning about the algorithm and using the calculator, as well as people interested in learning how to spin out OCaml libs into small demo websites!
 
 
 ## Building
